@@ -16,8 +16,7 @@ import LineString from 'ol/geom/LineString';
 
 const key = '5b3ce3597851110001cf6248327831cfba664fa09cc5f53a231a7882';
 const direction_url = 'https://api.openrouteservice.org/v2/directions/driving-car?api_key=' + key;
-// const duration_url = 'https://www.capibaro.ink/predict'
-const duration_url = 'http://127.0.0.1:5000/predict'
+const duration_url = 'https://www.capibaro.ink/predict'
 
 class ResetMapControl extends Control {
   constructor(opt_options) {
@@ -40,7 +39,7 @@ class ResetMapControl extends Control {
 
   handleResetMap() {
     this.getMap().getView().setCenter(transform([104.06385, 30.660467], 'EPSG:4326', 'EPSG:3857'))
-    this.getMap().getView().setZoom(14)
+    this.getMap().getView().setZoom(15)
   }
 }
 
@@ -162,9 +161,9 @@ const map = new Map({
   view: new View({
     center: transform([104.06385, 30.660467], 'EPSG:4326', 'EPSG:3857'),
     extent: transformExtent([102.9, 30.09, 104.9, 31.44], 'EPSG:4326', 'EPSG:3857'),
-    zoom: 14,
+    zoom: 15,
     minZoom: 10,
-    maxZoom: 18
+    maxZoom: 20
   }),
 });
 
@@ -182,6 +181,7 @@ const setStart = document.getElementById('set-start');
 setStart.addEventListener('click', function () {
   if (last_click.getGeometry() == null) {
     alert('No place has been chosen! Please click somewhere first.')
+    return;
   }
   start.setGeometry(last_click.getGeometry())
 });
@@ -190,6 +190,7 @@ const setEnd = document.getElementById('set-end');
 setEnd.addEventListener('click', function () {
   if (last_click.getGeometry() == null) {
     alert('No place has been chosen! Please click somewhere first.')
+    return;
   }
   end.setGeometry(last_click.getGeometry())
 });
@@ -200,7 +201,7 @@ directionButton.addEventListener('click', function() {
     getDirection();
     directing = true;
   } else {
-    clearDirction();
+    clearDirection();
     directing = false;
   }
 })
@@ -222,7 +223,7 @@ function getDirection() {
   let endCoord = transform(end.getGeometry().getCoordinates(), 'EPSG:3857','EPSG:4326')
   let request = direction_url + '&start=' + startCoord[0] + ',' + startCoord[1] + '&end=' + endCoord[0] +  ',' + endCoord[1];
   fetch(request).then(function (response) {
-    response.json().then(function (result) {
+    response.json().then(function (result) {  
       dist = result.features[0].properties.summary.distance
       coords = result.features[0].geometry.coordinates;
       lineGeometry = new LineString(coords).transform('EPSG:4326', 'EPSG:3857');
@@ -238,11 +239,11 @@ function getDirection() {
       distance = 0;
     })
   }).catch(error => {
-    console.error('error while fetching dirction:', error)
+    alert('error while fetching dirction:' + error.message)
   })
 }
 
-function clearDirction() {
+function clearDirection() {
   last_click.setGeometry(null);
   start.setGeometry(null);
   end.setGeometry(null);
@@ -259,8 +260,8 @@ durationButtion.addEventListener('click', function() {
   getDuration();
 })
 
-const distanceSpan = document.getElementById('distance');
-const durationSpan = document.getElementById('duration');
+const distanceSpan = document.getElementById('distance-span');
+const durationSpan = document.getElementById('duration-span');
 // const speedLabel = document.getElementById('speed');
 
 let pred_time;
@@ -268,7 +269,18 @@ let pred_time;
 function formatTime(seconds) {
   let minute = Math.floor(seconds / 60);
   let second = seconds - minute * 60;
-  return minute + ' min ' + second + ' s';
+  if (minute < 10) {
+    minute = '0' + minute;
+  }
+  if (second < 10) {
+    second = '0' + second;
+  }
+  return 'Duration: <code>' + minute + ' min ' + second + ' s ' + '</code>';
+}
+
+function formatDistance(dist) {
+  let distance = (dist/1000).toFixed(1);
+  return 'Distance: <code>' + distance + ' km ' +  '</code>';
 }
 
 function getDuration() {
@@ -277,7 +289,7 @@ function getDuration() {
       'coords': coords,
       'distance': dist / 1000,
     };
-    console.log(JSON.stringify(data))
+    // console.log(JSON.stringify(data));
     fetch(duration_url, {
       method: 'POST',
       headers: {
@@ -286,16 +298,16 @@ function getDuration() {
       body: JSON.stringify(data)
     }).then(response => response.json())
       .then(data => {
-        console.log(data)
-        distanceSpan.innerHTML = '<button>Distance: <code>' + (dist / 1000).toFixed(1) + ' km' + '</code></button>'
+        // console.log(JSON.stringify(data));
+        distanceSpan.innerHTML = '<button id="info-distance">' + formatDistance(dist) + '</button>'
         distanceSpan.style.visibility = 'visible';
         pred_time = parseInt(data.time);
-        durationSpan.innerHTML = '<button>Duration: <code>' + formatTime(pred_time) + '</code></button>'
+        durationSpan.innerHTML = '<button id="info-duration">' + formatTime(pred_time) + '</button>'
         durationSpan.style.visibility = 'visible';
         // speedLabel.style.visibility = 'visible';
         lastDistance = 0;
       }).catch(error => {
-        console.error('There has been a problem with duration fetch:', error)
+        alert('error while fetching dirction:' + error.message)
       })
   }
   else {
@@ -315,18 +327,18 @@ function moveFeature(event) {
   distance = (distance + (speed * elapsedTime) / 1e6) % 2;
   lastTime = time;
   if (distance >= 1) {
-    distanceSpan.innerHTML = '<button>Distance: <code>0.0 km</code></button>'
-    durationSpan.innerHTML = '<button>Duration: <code>0 min 0 s</code></button>'
+    distanceSpan.innerHTML = '<button id="info-distance">' + formatDistance(0.0) + '</button>';
+    durationSpan.innerHTML = '<button id="info-duration">' + formatTime(0) + '</button>';
     stopAnimation()
     return
   }
   if (distance-lastDistance > 100 / dist) {
-    let currentDistance = (dist / 1000 * (1 - distance)).toFixed(1)
+    let currentDistance = (dist * (1 - distance)).toFixed(1)
     if (currentDistance < 0) {currentDistance = 0.0}
-    distanceSpan.innerHTML = '<button>Distance: <code>' + currentDistance + ' km' + '</code></button>'
+    distanceSpan.innerHTML = '<button id="info-distance">' + formatDistance(currentDistance) + '</button>';
     let currentDuration = Math.round(pred_time * (1 - distance))
     if (currentDuration < 0) {currentDuration = 0}
-    durationSpan.innerHTML = '<button>Duration: <code>' + formatTime(currentDuration) + '</code></button>'
+    durationSpan.innerHTML = '<button id="info-duration">' + formatTime(currentDuration) + '</button>';
     lastDistance = distance
   }
   const currentCoordinate = lineGeometry.getCoordinateAt(distance);

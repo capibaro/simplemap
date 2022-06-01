@@ -6,50 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"><title>Simple Map</title>
-    <style>
-      .button {
-        display: inline-block;
-        padding: 15px 25px;
-        font-size: 24px;
-        cursor: pointer;
-        text-align: center;   
-        text-decoration: none;
-        outline: none;
-        color: #fff;
-        background-color: #4CAF50;
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 9px #999;
-      }
-
-      .button:hover {background-color: #3e8e41}
-
-      .button:active {
-        background-color: #3e8e41;
-        box-shadow: 0 5px #666;
-        transform: translateY(4px);
-      }
-    </style>
   </head>
   <body>
-    <div id="map" class="map"></div>
-    <div id="popup" class="ol-popup">
-      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-      <div id="popup-content"></div>
+    <div id="map-container">
+      <div id="map" class="map"></div>
+      <div id="popup" class="ol-popup">
+        <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+        <div id="popup-content"></div>
+      </div>
     </div>
     <div id="panel">
-        <button>Simple Map</button>
+        <button id="info-title">Simple Map</button>
         <button id="set-start">Set as Start</button>
         <button id="set-end">Set as End</button>
         <button id="get-direction">Get Direction</button>
         <button id="get-duration">Get Duration</button>
-        <button id="start-animation">Start Animation</button>&nbsp;
-      <!-- <label id="speed" for="input-speed" style="visibility: hidden;">
-        Speed:&nbsp;
-        <input id="input-speed" type="range" min="20" max="100" step="10" value="60">
-      </label>&nbsp; -->
-      <span id="distance" style="visibility: hidden;"></span>&nbsp;
-      <span id="duration" style="visibility: hidden;"></span>&nbsp;
+        <button id="start-animation">Start Animation</button>
+        <!-- <label id="speed" for="input-speed" style="visibility: hidden;">
+          Speed:&nbsp;
+          <input id="input-speed" type="range" min="20" max="100" step="10" value="60">
+        </label> -->
+        <span id="distance-span" style="visibility: hidden;"></span>
+        <span id="duration-span" style="visibility: hidden;"></span>
     </div>
     <script type="module" src="./main.js"></script>
   </body>

@@ -2,7 +2,7 @@
 
 .map {
   width: 100%;
-  height:400px;
+  height: 700px;
 }
 .map:-webkit-full-screen {
   height: 100%;
@@ -24,8 +24,15 @@
 .ol-touch .reset-map {
   top: 80px;
 }
-#panel {
-  margin: 10px;
+#panel { 
+  margin: 9px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+#info-title, #set-start, #set-end, #get-direction, #get-duration, #start-animation, #info-distance, #info-duration {
+  margin: 2px 2px;
+  flex-grow: 1;
 }
 .ol-popup {
   position: absolute;
